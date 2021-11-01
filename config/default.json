@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://gomof1:gj1RhjuVNPQo0xvO@dubsports-6ydkk.mongodb.net/test?retryWrites=true&w=majority",
+  "jwtSecret": "HITOHQsDszSCbgxnE57CHL4GW8EFo6en7eoLMq5RkjrmHbYb9zBQysNtsyaFFYJ"
+}
