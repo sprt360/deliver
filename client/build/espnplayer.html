@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Sling Player</title>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script
+      type="text/javascript"
+      src="https://cdn.bitmovin.com/player/web/8.2.4/bitmovinplayer.js"
+    ></script>
+
+    <style>
+      html,
+      body,
+      #my-player,
+      .video-js {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .bmpui-ui-watermark {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="my-player"></div>
+
+    <script>
+      getStreamUrls = async () => {
+        const config = {
+          key: "b03269cd-793c-48c6-83b4-2f080b6737db",
+          analytics: {
+            key: "5f80b14f-f599-49e4-b610-3ab95c8b6335",
+            videoId: "YOUR VIDEO ID",
+            title: "A descriptive video title"
+          },
+          network: {
+            // preprocessHttpRequest: function(type, request) {
+            //   if (request.url.includes("ModularDrm")) {
+            //     console.log(request);
+            //   }
+            // },
+            // preprocessHttpResponse: function(type, response) {
+            //   if (response.url.includes("ModularDrm")) {
+            //     const uint8 = new Uint8Array(response.body);
+            //     let drmTodayObj = JSON.parse(
+            //       String.fromCharCode.apply(null, uint8)
+            //     );
+            //     let str = window.atob(
+            //       drmTodayObj.getWidevineLicenseResponse.license
+            //     );
+            //     console.log(str);
+            //     response.body = str;
+            //   }
+            // }
+          },
+          remotecontrol: {
+            type: "googlecast"
+          }
+        };
+
+        const container = document.getElementById("my-player");
+        let player = new bitmovin.player.Player(container, config);
+
+        let searchParams = new URLSearchParams(location.search);
+        const id = searchParams.get("id");
+
+        // const { data } = await axios.get(
+        //   `http://localhost:5000/api/premium/espn/${id}`
+        // );
+
+        let source = {
+          dash: `https://dcbos-cl-livedash-perform.secure.footprint.net/1owm2b329n0h41odtt7a2mjgok/web/stream.mpd?channel=1211&mta=en&outlet=dazn-ca&plang=en`,
+          drm: {
+            widevine: {
+              LA_URL:
+                "https://widevine.entitlement.us.theplatform.com/wv/web/ModularDrm?form=json&schema=1.0&account=http%3A%2F%2Faccess.auth.theplatform.com%2Fdata%2FAccount%2F2702025685&_releasePid=ce4i3ndZzsWi&token=eyJhbGciOiJSUzUxMiJ9.eyJzdWIiOiJwZ2xzLXByYy10cnVzdGVkLzAwMTI0MDAwMDFJTTFJMkFBTCIsImlzcyI6IjEiLCJleHAiOjE1ODIzMjM2MTMsImlhdCI6MTU4MjMxNjQxMzM1NCwianRpIjoiOTE0MjFiYzAtMjU1My00NmRiLWEwYjMtZTBmOTcxMjk4MDUxIiwiZGlkIjoicGdscy1wcmMtdHJ1c3RlZCIsInVubSI6IjAwMTI0MDAwMDFJTTFJMkFBTCIsImN0eCI6IntcInVzZXJOYW1lXCI6XCIwMDEyNDAwMDAxSU0xSTJBQUxcIixcImF0dHJpYnV0ZXNcIjp7XCJzdWJzY3JpcHRpb25MZXZlbFwiOlwic3RhbmRhcmRcIn19XG4iLCJvaWQiOm51bGx9.AmyHOP-TGNC6ccHzi5BnfkBR_d8Xz-TFacWhKCh928UEyyN_bHrIIw6evAU0QPdHZG2RBIxTQPKpThl17AfVMykV1W-zlzQkYlzIiiLFxXyqeMYXuDbmZtGreJncUAgLLzz6BPuKUp67rTws3eREaHRzPvQwctpa_airZ21eZoD0Y9Z9RlDkPCjYVwV--99Z-W-peJkWFqBp1b6WRqci-MnxBFiz_vaplXEd5ReneOzbjWu4jPPHtwJKohClcXGowiHlvlYgfBjSD-BuFmKkdKDdmEfNT0HfZ-8qfAhAKJr8ozw_umQJLypuk5C2X5IYECzzWB5wkrRGPkY0-SIqkA",
+              prepareMessage: function(keyMessage, callback) {
+                return JSON.stringify({
+                  getWidevineLicense: {
+                    releasePid: "ce4i3ndZzsWi",
+                    widevineChallenge:
+                      "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"
+                  }
+                });
+              },
+              prepareLicense: function(licenseObj) {
+                console.log("got licenseobj", licenseObj);
+                let license = { license: licenseObj.license };
+                try {
+                  let drmTodayObj = JSON.parse(
+                    String.fromCharCode.apply(null, licenseObj.license)
+                  );
+                  if (drmTodayObj) {
+                    let str = window.atob(
+                      drmTodayObj.getWidevineLicenseResponse.license
+                    );
+                    let bufView = new Uint8Array(new ArrayBuffer(str.length));
+                    for (let i = 0; i < str.length; i++) {
+                      bufView[i] = str.charCodeAt(i);
+                    }
+                    license.license = bufView;
+                    return license;
+                  } else {
+                    console.log("no license");
+                  }
+                } catch (e) {
+                  console.log("invalid license");
+                }
+                console.log(license);
+                return license;
+              }
+            }
+          }
+        };
+
+        player.load(source).then(
+          function() {
+            console.log("Successfully created Bitmovin Player instance");
+            player.play();
+          },
+          function(reason) {
+            console.log("Error while creating Bitmovin Player instance");
+          }
+        );
+      };
+
+      getStreamUrls();
+    </script>
+
+    <!-- <script>
+      window.xhook.before((request, callback) => {
+        // only set header request for the videojs src url (don't touch other xhr requests)
+        // if (request.url.includes("check2")) {
+        //   request.url = `http://localhost:5000/api/premium/espn_key/${btoa(
+        //     request.url
+        //   )}`;
+        // }
+        callback();
+      });
+    </script> -->
+  </body>
+</html>

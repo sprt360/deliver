@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Sling Player</title>
+
+    <script src="//unpkg.com/xhook@latest/dist/xhook.min.js"></script>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script
+      type="text/javascript"
+      src="https://cdn.bitmovin.com/player/web/8.2.4/bitmovinplayer.js"
+    ></script>
+
+    <style>
+      html,
+      body,
+      #my-player,
+      .video-js {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .bmpui-ui-watermark {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="my-player"></div>
+
+    <script>
+      getStreamUrls = async () => {
+        const config = {
+          key: "b03269cd-793c-48c6-83b4-2f080b6737db",
+          analytics: {
+            key: "5f80b14f-f599-49e4-b610-3ab95c8b6335",
+            videoId: "YOUR VIDEO ID",
+            title: "A descriptive video title"
+          },
+          remotecontrol: {
+            type: "googlecast"
+          }
+        };
+
+        const container = document.getElementById("my-player");
+        let player = new bitmovin.player.Player(container, config);
+
+        let searchParams = new URLSearchParams(location.search);
+        const id = searchParams.get("id");
+        const channel = id;
+
+        let source = {
+          dash: `/api/premium/channel/${channel}.mpd`,
+          drm: {
+            widevine: {
+              LA_URL: "https://p-drmwv.movetv.com/widevine/proxy",
+              prepareMessage: function(keyMessage) {
+                return JSON.stringify({
+                  env: "production",
+                  user_id: "2bf94066-cefa-11e6-901f-0ac62721cfe7",
+                  channel_id: "ca0cad8dbb4a4e68962810d8a6aa8b6a",
+                  message: Array.apply(null, new Uint8Array(keyMessage.message))
+                });
+              }
+            }
+          }
+        };
+
+        player.load(source).then(
+          function() {
+            console.log("Successfully created Bitmovin Player instance");
+            player.play();
+          },
+          function(reason) {
+            console.log("Error while creating Bitmovin Player instance");
+          }
+        );
+      };
+
+      getStreamUrls();
+    </script>
+
+    <script>
+      window.xhook.before((request, callback) => {
+        // only set header request for the videojs src url (don't touch other xhr requests)
+        if (request.url.includes("licensing.bitmovin.com")) {
+          request.url = request.url.replace(
+            "licensing.bitmovin.com",
+            "analytics-ingress-global.bitmovin.com"
+          );
+        }
+        callback();
+      });
+    </script>
+  </body>
+</html>
